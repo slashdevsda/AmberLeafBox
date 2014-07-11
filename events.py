@@ -1,3 +1,8 @@
+##
+# AmberLeafBox
+# Soup - 2014
+##
+
 import gtk
 import webkit
 from time import time
@@ -40,9 +45,7 @@ class EventManager:
             event.x_root = oevent['x_root']
             event.y_root = oevent['y_root']
             event.send_event = True
-            #pprint( { var:getattr(event, var) for var in dir(event) } )
             view.emit("button_press_event", event)
-            #tshirt riri fifi loulou
             event = gtk.gdk.Event(gtk.gdk.BUTTON_RELEASE)
             event.x = oevent['x']
             event.y = oevent['y']
@@ -60,7 +63,6 @@ class EventManager:
         """
         handle click event
         """
-        #pprint( { var:getattr(event, var) for var in dir(event) } )
 
         print('intercep :\nx : %d, y : %d' %(event.x, event.y))
 
@@ -97,7 +99,6 @@ class EventManager:
 
     def get_callback(self, event_type):
         return event_type, {
-            #"motion_notify_event" : self.motion_notify_event,
             "button_press_event"  : self.button_press_event,
         }[event_type]
 
@@ -143,9 +144,7 @@ class EventPlayer(object):
             event.x_root = oevent.x_root
             event.y_root = oevent.y_root
             event.send_event = True
-            #pprint( { var:getattr(event, var) for var in dir(event) } )
             view.emit("button_press_event", event)
-            #tshirt riri fifi loulou
             event = gtk.gdk.Event(gtk.gdk.BUTTON_RELEASE)
             event.x = oevent.x
             event.y = oevent.y
