@@ -14,28 +14,34 @@ class EventManager:
         self._event_log = []
         self._init_time = time()
 
-    def replay_events(self, window, view, filename):
+    def replay_events(self, window, view, filename, end=None):
         f = open(filename, 'r')
         d = pickle.load(f)
-        for item in d:
+
+        window.resize(* d['window_size'])
+        for item in d['events']:
             
             timeout_add(
-                int(item['time'] * 1000),
+                int(item['trigger'] * 1000),
                 self.make_callback(window, view, item)
             )
-            print("replay event")
+        if end :
+            timeout_add(
+                int((item['time'] + 2) * 1000),
+                end
+                )
+
 
     def make_callback(self, window, view, event_data, *args):
         """
         return a callback suitable
         for event simulation.
         """
-        if event_data['type'] == gtk.gdk.BUTTON_PRESS:
-            return self.make_button_callback(window, view, event_data)
+
         return self.make_button_callback(window, view, event_data)
 
     def make_button_callback(self, window, view, oevent):
-        def callback():
+        def btn_callback():
             event = gtk.gdk.Event(gtk.gdk.BUTTON_PRESS)
             event.x = oevent['x']
             event.y = oevent['y']
@@ -51,14 +57,33 @@ class EventManager:
             event.y = oevent['y']
             event.window = view.window
             event.button = 1
-            event.time = 0
+            event.time = oevent['time']
             event.x_root = oevent['x_root']
             event.y_root = oevent['y_root']
             event.send_event = True
             view.emit("button_release_event", event)
-        return callback
 
-        
+        def key_callback():
+            event = gtk.gdk.Event(gtk.gdk.KEY_PRESS)
+            event.window = view.window
+            event.keyval = oevent['keyval']
+            event.time = oevent['time']
+            event.send_event = True
+            view.emit("key_press_event", event)
+            event = gtk.gdk.Event(gtk.gdk.KEY_RELEASE)
+            event.keyval = oevent['keyval']
+            event.window = view.window
+            event.time = 0
+            event.send_event = True
+            view.emit("key_release_event", event)
+
+        return {
+            gtk.gdk.BUTTON_PRESS : btn_callback,
+            gtk.gdk.KEY_PRESS : key_callback,
+            }[oevent['type']]
+
+
+
     def button_press_event(self, widget, event):
         """
         handle click event
@@ -66,15 +91,43 @@ class EventManager:
 
         print('intercep :\nx : %d, y : %d' %(event.x, event.y))
 
-        self._event_log.append((time() - self._init_time,
-                                'click',
-                                event.x, event.y, event.x_root, event.y_root))
+        self._event_log.append(
+                                {
+                                    'type'   : gtk.gdk.BUTTON_PRESS,
+                                    'x'      : event.x,
+                                    'y'      : event.y,
+                                    'x_root' : event.x_root,
+                                    'y_root' : event.y_root,
+                                    'time'   : event.time,
+                                    'trigger': time() - self._init_time,
+                                    'keyval' : None,
+                                }
+                            )
+    def key_press_event(self, widget, event):
+        """
+        handle click event
+        """
+
+        print('intercep :\nx : %s' %(gtk.gdk.keyval_name(event.keyval)))
+
+        self._event_log.append(
+                                {
+                                    'type'   : gtk.gdk.KEY_PRESS,
+                                    'x'      : None,
+                                    'y'      : None,
+                                    'x_root' : None,
+                                    'y_root' : None,
+                                    'time'   : event.time,
+                                    'trigger': time() - self._init_time,
+                                    'keyval' : event.keyval,
+                                }
+                            )
 
     def export(self):
         return self._event_log
 
 
-    def dump(self, filename):
+    def dump(self, filename, **datas):
         try :
             f = open(filename, 'w+')
         except Exception, e:
@@ -82,28 +135,23 @@ class EventManager:
             raise e
 
         dump = []
-        for event in self._event_log:
-            print(event)
-            d = {
-                'time':event[0],
-                'type':gtk.gdk.BUTTON_PRESS,
-                'x':event[2],
-                'y':event[3],
-                'x_root':event[4],
-                'y_root':event[5],
-            }
-            dump.append(d)
-        pickle.dump(dump, f, 0)
+        for data in self._event_log:
+            dump.append(data)
+
+        datas['events'] = dump
+        pickle.dump(datas, f, 0)
         f.close()
 
 
     def get_callback(self, event_type):
         return event_type, {
             "button_press_event"  : self.button_press_event,
+            "key_press_event"     : self.key_press_event,
         }[event_type]
 
 
-class EventPlayer(object):
+
+class EventPlayerPD(object):
     def __init__(self):
         self._event_list = []
 
