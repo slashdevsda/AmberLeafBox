@@ -93,7 +93,7 @@ class EventManager:
                 'y_root':event[5],
             }
             dump.append(d)
-        pickle.dump(dump, f)
+        pickle.dump(dump, f, 0)
         f.close()
 
 
