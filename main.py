@@ -39,8 +39,7 @@ class App(object):
             )
 
 
-        #self.view.open("http://127.0.0.1:3000/")
-        self.view.open("http://leofaber.tumblr.com/")
+        self.view.open("http://127.0.0.1:3000/")
         vbox = gtk.VBox(False)
         menu = self.create_menu()
         vbox.pack_start(menu, False, False, 0)
