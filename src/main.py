@@ -1,7 +1,9 @@
-##
+#!/usr/bin/env python
+#-*- coding: utf-8 -*-#
+#
 # AmberLeafBox
 # Soup - 2014
-##
+#
 
 import gtk
 import webkit
@@ -173,7 +175,7 @@ class App(object):
 
         return menu_bar
 
-if __name__ == '__main__':
+def main():
     app = App()
     app.parse_args()
     app.run()
